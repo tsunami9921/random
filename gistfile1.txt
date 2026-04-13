@@ -1,0 +1,346 @@
+if getgenv().SLS_Hub_Loaded then return end
+getgenv().SLS_Hub_Loaded = true
+
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local Teams = game:GetService("Teams")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local LocalPlayer = Players.LocalPlayer
+
+-- ==================== INTRO SCREEN ====================
+local IntroGui = Instance.new("ScreenGui")
+IntroGui.Name = "SLS_IntroScreen"
+IntroGui.IgnoreGuiInset = true
+pcall(function() IntroGui.Parent = CoreGui end)
+
+local IntroBg = Instance.new("Frame")
+IntroBg.Size = UDim2.new(1, 0, 1, 0)
+IntroBg.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+IntroBg.BackgroundTransparency = 1
+IntroBg.Parent = IntroGui
+
+local IntroText = Instance.new("TextLabel")
+IntroText.Size = UDim2.new(1, 0, 1, 0)
+IntroText.BackgroundTransparency = 1
+IntroText.Font = Enum.Font.GothamBold
+IntroText.Text = "Made by Tsubasa And Res.Ftbl\nUltimate Edition"
+IntroText.TextColor3 = Color3.fromRGB(255, 170, 0)
+IntroText.TextSize = 40
+IntroText.TextTransparency = 1
+IntroText.Parent = IntroBg
+
+local ti = TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+TweenService:Create(IntroBg, ti, {BackgroundTransparency = 0.2}):Play()
+TweenService:Create(IntroText, ti, {TextTransparency = 0}):Play()
+task.wait(3.5)
+TweenService:Create(IntroBg, ti, {BackgroundTransparency = 1}):Play()
+TweenService:Create(IntroText, ti, {TextTransparency = 1}):Play()
+task.wait(1.5)
+pcall(function() IntroGui:Destroy() end)
+-- =======================================================
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "⚽ SLS Master Hub V57",
+    LoadingTitle = "Ultimate Edition",
+    LoadingSubtitle = "by Res.Ftbl",
+    Theme = "AmberGlow",
+    ConfigurationSaving = { Enabled = false }
+})
+
+local TabTeam     = Window:CreateTab("🏴 Team", 4483362458)
+local TabFarm     = Window:CreateTab("🚜 Auto Farm", 4483362458)
+local TabMovement = Window:CreateTab("🏃 Movement", 4483362458)
+local TabBall     = Window:CreateTab("⚽ Hitbox & Ball", 4483362458)
+local TabCustom   = Window:CreateTab("🎨 Skin & Skills", 4483362458)
+local TabGoal     = Window:CreateTab("🥅 Goal Hitbox", 4483362458)
+local TabEmote    = Window:CreateTab("🎭 Emotes", 4483362458)
+local TabLeader   = Window:CreateTab("🏆 Leaderboard", 4483362458)
+local TabVisuals  = Window:CreateTab("👁️ Visuals", 4483362458)
+
+local function getBall()
+    local char = LocalPlayer.Character
+    return (char and char:FindFirstChild("Ball")) or Workspace:FindFirstChild("Ball", true) or Workspace:FindFirstChild("Football", true)
+end
+
+-- ==================== VISUALS (FPS & ESP) ====================
+local FpsGuiEnabled = false
+local FpsGui = Instance.new("ScreenGui")
+FpsGui.Name = "SLS_FPS_Counter"
+pcall(function() FpsGui.Parent = CoreGui end)
+local FpsLabel = Instance.new("TextLabel")
+FpsLabel.Size = UDim2.new(0, 100, 0, 30); FpsLabel.Position = UDim2.new(1, -110, 0, 10); FpsLabel.BackgroundTransparency = 0.5
+FpsLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0); FpsLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+FpsLabel.TextScaled = true; FpsLabel.Font = Enum.Font.Jura; FpsLabel.Parent = FpsGui; FpsGui.Enabled = false
+
+local EspEnabled = false
+local BallHighlight = Instance.new("Highlight")
+BallHighlight.Name = "SLS_Ball_ESP"
+BallHighlight.FillColor, BallHighlight.OutlineColor, BallHighlight.FillTransparency = Color3.fromRGB(255, 50, 50), Color3.fromRGB(255, 255, 255), 0.5
+pcall(function() BallHighlight.Parent = CoreGui end)
+
+TabVisuals:CreateToggle({Name = "🔴 Ball ESP", CurrentValue = false, Callback = function(v) EspEnabled = v end})
+TabVisuals:CreateToggle({Name = "📈 Show FPS", CurrentValue = false, Callback = function(v) FpsGuiEnabled = v; FpsGui.Enabled = v end})
+
+RunService.RenderStepped:Connect(function(dt)
+    if FpsGuiEnabled then FpsLabel.Text = "FPS: " .. math.floor(1 / dt) end
+    local ball = getBall()
+    if EspEnabled and ball then BallHighlight.Adornee = ball else BallHighlight.Adornee = nil end
+end)
+
+-- ==================== TEAM JOIN ====================
+local selectedTeamName = ""
+local TargetPosition = "CF"
+local TeamOptions = {}
+
+local function refreshTeams()
+    table.clear(TeamOptions)
+    for _, team in ipairs(Teams:GetChildren()) do table.insert(TeamOptions, team.Name) end
+end
+refreshTeams()
+
+TabTeam:CreateDropdown({Name = "🎯 Select Team", Options = TeamOptions, CurrentOption = {TeamOptions[1]}, MultipleOptions = false, Callback = function(Opt) selectedTeamName = Opt[1] end})
+TabTeam:CreateDropdown({Name = "🏃 Position", Options = {"CF", "RF", "LF", "CM", "LB", "RB", "GK"}, CurrentOption = {"CF"}, MultipleOptions = false, Callback = function(Opt) TargetPosition = Opt[1] end})
+TabTeam:CreateButton({Name = "🚀 FORCE JOIN", Callback = function()
+    pcall(function() LocalPlayer:SetAttribute("Position", TargetPosition) end)
+    local targetTeam = Teams:FindFirstChild(selectedTeamName)
+    if not targetTeam then return end
+    pcall(function()
+        local Knit = require(ReplicatedStorage.Packages.Knit)
+        if Knit.GetService("TeamService") then Knit.GetService("TeamService"):JoinTeam(targetTeam.Name, TargetPosition) end
+    end)
+    for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+        if obj:IsA("RemoteEvent") and obj.Name:lower():find("join") then obj:FireServer(targetTeam.Name, TargetPosition) end
+    end
+end})
+
+-- ==================== AUTO FARM & SCORE (SMART PUSH) ====================
+local AutoScoreEnabled, AutoFarmEnabled, TargetGoal = false, false, "Away"
+TabFarm:CreateDropdown({Name = "🥅 Target Enemy Goal", Options = {"Away", "Home"}, CurrentOption = {"Away"}, MultipleOptions = false, Callback = function(Opt) TargetGoal = Opt[1] end})
+TabFarm:CreateToggle({Name = "⚡ Better Auto Score (Push)", CurrentValue = false, Callback = function(v) AutoScoreEnabled = v end})
+TabFarm:CreateToggle({Name = "🚜 Auto Farm (Loop)", CurrentValue = false, Callback = function(v) AutoFarmEnabled = v end})
+
+local function getGoalPosition()
+    local stadium = Workspace:FindFirstChild("Stadium")
+    if stadium and stadium:FindFirstChild("Teams") then
+        local goal = stadium.Teams:FindFirstChild(TargetGoal) and stadium.Teams[TargetGoal]:FindFirstChild("Goal")
+        if goal and goal:FindFirstChild("Hitbox") then return goal.Hitbox.Position end
+    end
+    return Vector3.new(0, 0, 0)
+end
+
+RunService.Heartbeat:Connect(function()
+    if AutoFarmEnabled or AutoScoreEnabled then
+        local ball = getBall()
+        local char = LocalPlayer.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local goalPos = getGoalPosition()
+
+        if ball and hrp and goalPos ~= Vector3.new(0,0,0) then
+            local dist = (hrp.Position - ball.Position).Magnitude
+            if AutoFarmEnabled and dist > 5 then
+                hrp.CFrame = CFrame.lookAt(ball.Position + Vector3.new(0, 0, 3), ball.Position)
+            end
+            if dist <= 7 then
+                hrp.CFrame = CFrame.lookAt(hrp.Position, goalPos)
+                hrp.Velocity = hrp.CFrame.LookVector * 45
+            end
+        end
+    end
+end)
+
+-- ==================== HITBOX & BALL (MAGNET) ====================
+local HitboxEnabled, HitboxSize, BallVelocityEnabled, BallVelocityMultiplier = false, 5, false, 2
+local originalHitboxSize = nil
+
+TabBall:CreateToggle({Name = "📦 Enhanced Hitbox (Magnet)", CurrentValue = false, Callback = function(v) HitboxEnabled = v end})
+TabBall:CreateSlider({Name = "Hitbox Size", Range = {2, 20}, Increment = 1, CurrentValue = 5, Callback = function(v) HitboxSize = v end})
+TabBall:CreateToggle({Name = "🔥 Super Shot", CurrentValue = false, Callback = function(v) BallVelocityEnabled = v end})
+TabBall:CreateSlider({Name = "Shot Multiplier", Range = {1, 10}, Increment = 0.5, CurrentValue = 2, Callback = function(v) BallVelocityMultiplier = v end})
+
+local LastBallHit = tick()
+RunService.RenderStepped:Connect(function()
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local phitbox = char and char:FindFirstChild("Hitbox")
+    local ball = getBall()
+    
+    if phitbox and phitbox:IsA("BasePart") then
+        if not originalHitboxSize then originalHitboxSize = phitbox.Size end
+        if HitboxEnabled then
+            phitbox.Size = Vector3.new(HitboxSize, HitboxSize, HitboxSize)
+            phitbox.Transparency = 0.6; phitbox.Color = Color3.fromRGB(0, 255, 100); phitbox.CanCollide = false
+            if ball and hrp and (hrp.Position - ball.Position).Magnitude <= HitboxSize then
+                ball.AssemblyLinearVelocity = (hrp.Position - ball.Position).Unit * 5
+            end
+        else
+            phitbox.Size = originalHitboxSize; phitbox.Transparency = 1
+        end
+    end
+
+    if ball and BallVelocityEnabled and hrp then
+        if (hrp.Position - ball.Position).Magnitude < 15 and ball.AssemblyLinearVelocity.Magnitude > 10 and tick() - LastBallHit > 0.5 then
+            ball.AssemblyLinearVelocity = ball.AssemblyLinearVelocity * BallVelocityMultiplier
+            LastBallHit = tick()
+        end
+    end
+end)
+
+-- ==================== SKINS & SKILLS (CLIENT-SIDED & DRIBBLE FIX) ====================
+local SkinOptions = {"None"}
+pcall(function()
+    local themesFolder = ReplicatedStorage:FindFirstChild("Assets") and ReplicatedStorage.Assets.Items:FindFirstChild("BallThemes")
+    if themesFolder then
+        for _, skin in ipairs(themesFolder:GetDescendants()) do
+            if skin:IsA("Model") or skin:IsA("BasePart") then table.insert(SkinOptions, skin.Name) end
+        end
+    end
+end)
+if #SkinOptions == 1 then table.insert(SkinOptions, "Default") end
+
+local SelectedSkin, SkinEnabled, DribbleFixEnabled = "None", false, false
+local frontFlipId = "rbxassetid://116371892287577"
+
+TabCustom:CreateDropdown({Name = "🎨 Client Ball Theme", Options = SkinOptions, CurrentOption = {"None"}, MultipleOptions = false, Callback = function(Opt) SelectedSkin = Opt[1] end})
+TabCustom:CreateToggle({Name = "✨ Enable Client Skin", CurrentValue = false, Callback = function(v) SkinEnabled = v end})
+TabCustom:CreateToggle({Name = "🤸 Dribble Fix (Auto Front-Flip)", CurrentValue = false, Callback = function(v) DribbleFixEnabled = v end})
+
+-- Dribble Fix Engine
+local function setupAnimatorFix(char)
+    local hum = char:WaitForChild("Humanoid", 5)
+    local animator = hum and hum:WaitForChild("Animator", 5)
+    local hrp = char:WaitForChild("HumanoidRootPart", 5)
+    if animator and hrp then
+        animator.AnimationPlayed:Connect(function(track)
+            if DribbleFixEnabled and track.Animation then
+                local n = track.Animation.Name:lower()
+                if n:find("dribble") or n:find("flick") or n:find("turn") or n:find("step") then
+                    track:Stop()
+                    local customAnim = Instance.new("Animation")
+                    customAnim.AnimationId = frontFlipId
+                    local newTrack = animator:LoadAnimation(customAnim)
+                    newTrack:Play()
+                    hrp.AssemblyLinearVelocity = hrp.CFrame.LookVector * 45 + Vector3.new(0, 15, 0)
+                end
+            end
+        end)
+    end
+end
+if LocalPlayer.Character then setupAnimatorFix(LocalPlayer.Character) end
+LocalPlayer.CharacterAdded:Connect(setupAnimatorFix)
+
+-- Client Skin Engine
+local lastBall, lastSkin = nil, ""
+RunService.Heartbeat:Connect(function()
+    local ball = getBall()
+    if ball and ball:IsA("BasePart") then
+        if SkinEnabled and SelectedSkin ~= "None" then
+            if ball ~= lastBall or SelectedSkin ~= lastSkin then
+                if lastBall and lastBall:FindFirstChild("SLS_ClientSkin") then lastBall.SLS_ClientSkin:Destroy() end
+                lastBall = ball; lastSkin = SelectedSkin
+                pcall(function()
+                    local targetTheme = ReplicatedStorage.Assets.Items.BallThemes:FindFirstChild(SelectedSkin, true)
+                    if targetTheme then
+                        local clone = targetTheme:Clone()
+                        clone.Name = "SLS_ClientSkin"
+                        for _, v in ipairs(clone:GetDescendants()) do if v:IsA("BasePart") then v.CanCollide=false; v.Anchored=false; v.Massless=true; v.CanTouch=false end end
+                        if clone:IsA("BasePart") then clone.CanCollide=false; clone.Anchored=false; clone.Massless=true; clone.CanTouch=false end
+                        clone.Parent = ball
+                        local weldPart = clone:IsA("Model") and clone.PrimaryPart or clone
+                        if clone:IsA("Model") then clone:PivotTo(ball.CFrame) else clone.CFrame = ball.CFrame end
+                        local w = Instance.new("WeldConstraint"); w.Part0 = ball; w.Part1 = weldPart; w.Parent = clone
+                    end
+                end)
+            end
+            ball.Transparency = 1
+            local cSkin = ball:FindFirstChild("SLS_ClientSkin")
+            if cSkin then for _, v in ipairs(cSkin:GetDescendants()) do if v:IsA("BasePart") and v.Transparency>0.1 then v.Transparency=0 end end end
+        else
+            if lastBall and lastBall:FindFirstChild("SLS_ClientSkin") then lastBall.SLS_ClientSkin:Destroy(); lastBall.Transparency=0; lastSkin="" end
+        end
+    end
+end)
+
+-- ==================== MOVEMENT ====================
+local InfStam, SpeedE, SpeedM, FlyE, FlyS = false, false, 0.3, false, 50
+TabMovement:CreateToggle({Name = "🔥 Infinite Stamina", CurrentValue = false, Callback = function(v) InfStam = v end})
+TabMovement:CreateToggle({Name = "⚡ Speed Boost", CurrentValue = false, Callback = function(v) SpeedE = v end})
+TabMovement:CreateSlider({Name = "Speed Multiplier", Range = {0.1, 2}, Increment = 0.1, CurrentValue = 0.3, Callback = function(v) SpeedM = v end})
+TabMovement:CreateToggle({Name = "🦅 Fly Mode", CurrentValue = false, Callback = function(v) FlyE = v 
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        if v then
+            local bv = Instance.new("BodyVelocity"); bv.Name = "SLS_Fly"; bv.MaxForce = Vector3.new(100000,100000,100000); bv.Parent = char.HumanoidRootPart; workspace.Gravity = 0
+        else
+            if char.HumanoidRootPart:FindFirstChild("SLS_Fly") then char.HumanoidRootPart.SLS_Fly:Destroy() end; workspace.Gravity = 196.2
+        end
+    end
+end})
+
+RunService.Heartbeat:Connect(function()
+    local char = LocalPlayer.Character
+    if InfStam then pcall(function() LocalPlayer:SetAttribute("Stamina", 100); if char then char:SetAttribute("Stamina", 100) end end) end
+    if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") then
+        local hum, hrp = char.Humanoid, char.HumanoidRootPart
+        if SpeedE and hum.MoveDirection.Magnitude > 0 then char:TranslateBy(hum.MoveDirection * SpeedM) end
+        if FlyE and hrp:FindFirstChild("SLS_Fly") then hrp.SLS_Fly.Velocity = hum.MoveDirection * 50 end
+    end
+end)
+
+-- ==================== GOAL HITBOX ====================
+local GoalHitEnabled, GoalHitSize, GoalTarget = false, 50, "Away"
+TabGoal:CreateDropdown({Name = "🎯 Target Goal", Options = {"Away", "Home", "Both"}, CurrentOption = {"Away"}, MultipleOptions = false, Callback = function(Opt) GoalTarget = Opt[1] end})
+TabGoal:CreateToggle({Name = "🥅 Huge Goal Hitbox", CurrentValue = false, Callback = function(v) GoalHitEnabled = v end})
+
+RunService.Heartbeat:Connect(function()
+    local stadium = Workspace:FindFirstChild("Stadium")
+    if stadium and stadium:FindFirstChild("Teams") then
+        for _, t in ipairs({"Home", "Away"}) do
+            local gHitbox = stadium.Teams[t]:FindFirstChild("Goal") and stadium.Teams[t].Goal:FindFirstChild("Hitbox")
+            if gHitbox and gHitbox:IsA("BasePart") then
+                if GoalHitEnabled and (GoalTarget == "Both" or GoalTarget == t) then
+                    gHitbox.Size = Vector3.new(50, 50, 50); gHitbox.Transparency = 0.6; gHitbox.Color = Color3.fromRGB(0, 255, 0)
+                else
+                    gHitbox.Size = Vector3.new(6.7, 10.3, 31.5); gHitbox.Transparency = 1
+                end
+            end
+        end
+    end
+end)
+
+-- ==================== EMOTES ====================
+local TauntList = {"None", "67", "Backflip", "Basketball Head", "Best Mates", "Brazilian Dance", "Bunny Hop", "C'mere", "Chilly", "Chilly Legs", "Clap", "Dab", "FCWC Trophy", "Floss", "Fly Like An Eagle", "Get Griddy", "Idol", "Jubi", "Laughing", "Meditate", "Pigeon Dance", "Reverse Card", "Shhh", "Shrug", "T-Rex", "Take the L", "Tree Pose", "Worm", "adidas Taunt"}
+local SelTaunt = "Get Griddy"
+TabEmote:CreateDropdown({Name = "🕺 Select Taunt", Options = TauntList, CurrentOption = {"Get Griddy"}, MultipleOptions = false, Callback = function(Opt) SelTaunt = Opt[1] end})
+TabEmote:CreateButton({Name = "▶️ Play Native Taunt", Callback = function()
+    pcall(function() require(LocalPlayer.PlayerScripts.Client.Controllers.Actions.Managers.Taunt).Activate(SelTaunt) end)
+end})
+
+-- ==================== LEADERBOARD ====================
+local LeaderboardText = TabLeader:CreateParagraph({Title = "🏆 Top Players", Content = "Fetching data..."})
+
+local function updateLeaderboard()
+    local statsStr = ""
+    local playerList = Players:GetPlayers()
+    table.sort(playerList, function(a, b)
+        local aG = (a:FindFirstChild("leaderstats") and a.leaderstats:FindFirstChild("Goals")) and a.leaderstats.Goals.Value or 0
+        local bG = (b:FindFirstChild("leaderstats") and b.leaderstats:FindFirstChild("Goals")) and b.leaderstats.Goals.Value or 0
+        return aG > bG
+    end)
+    for i, plr in ipairs(playerList) do
+        local g = (plr:FindFirstChild("leaderstats") and plr.leaderstats:FindFirstChild("Goals")) and plr.leaderstats.Goals.Value or 0
+        local t = plr.Team and plr.Team.Name or "No Team"
+        statsStr = statsStr .. i .. ". " .. plr.Name .. " | Team: " .. t .. " | Goals: " .. g .. "\n"
+    end
+    LeaderboardText:Set({Title = "🏆 Top Players (" .. #playerList .. " In Game)", Content = statsStr})
+end
+
+TabLeader:CreateButton({Name = "🔄 Force Refresh", Callback = updateLeaderboard})
+task.spawn(function() while task.wait(5) do pcall(updateLeaderboard) end end)
