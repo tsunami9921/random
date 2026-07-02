@@ -2689,7 +2689,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 				return {}
 			end
 
-			function ParagraphValue:CreateScriptExecutor(settings)
+			--[[function ParagraphValue:CreateScriptExecutor(settings)
 				local box = Instance.new("TextBox")
 				box.Size = UDim2.new(1, 0, 0, 80)
 				box.Position = UDim2.new(0, 0, 1, 10)
@@ -2710,7 +2710,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 					if fn then pcall(fn) else warn(err) end
 				end)
 				return {}
-			end
+			end]]
 
 			function ParagraphValue:CreateMouseTracker(settings)
 				local label = Instance.new("TextLabel")
@@ -3791,10 +3791,10 @@ end
                 ToggleSettings.ToggleClicked()
             else
                 RayfieldLibrary:Notify({
-                    Title = ToggleSettings.WaitTitle or "Uyarı",
-                    Content = ToggleSettings.WaitContent or "Bu seçenek şu anda beklemede.",
+                    Title = ToggleSettings.WaitTitle or "test",
+                    Content = ToggleSettings.WaitContent or "test",
                     Duration = ToggleSettings.WaitDuration or 3,
-                    Image = 4483362458,
+                    Image = ToggleSettings.WaitImage or 8508980527,
                 })
             end
             return 
@@ -3853,7 +3853,7 @@ end
                     Title = ToggleSettings.WaitTitle or "this is test",
                     Content = ToggleSettings.WaitContent or "this is test",
                     Duration = ToggleSettings.WaitDuration or 3,
-                    Image = 4483362458,
+                    Image = ToggleSettings.WaitImage or 8508980527,
                 })
             end
             return 
