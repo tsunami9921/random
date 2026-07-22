@@ -903,50 +903,81 @@ local keybindConnections = {} -- For storing keybind connections to disconnect w
 local SelectedTheme = RayfieldLibrary.Theme.Default
 
 local function ChangeTheme(Theme)
-	if typeof(Theme) == 'string' then
-		SelectedTheme = RayfieldLibrary.Theme[Theme]
-	elseif typeof(Theme) == 'table' then
-		SelectedTheme = Theme
+    if typeof(Theme) == "string" then
+        SelectedTheme = RayfieldLibrary.Theme[Theme]
+    elseif typeof(Theme) == "table" then
+        SelectedTheme = Theme
+    end
+
+    -- 8789999
+    local Background = Main:FindFirstChild("Background")
+
+    if not Background then
+        Background = Instance.new("ImageLabel")
+        Background.Name = "Background"
+        Background.BackgroundTransparency = 1
+        Background.BorderSizePixel = 0
+        Background.Size = UDim2.new(1, 0, 1, 0)
+        Background.Position = UDim2.new(0, 0, 0, 0)
+        Background.ScaleType = Enum.ScaleType.Crop
+        Background.ImageTransparency = 0.15
+        Background.ZIndex = 0
+        Background.Parent = Main
+    end
+
+    if SelectedTheme.BackgroundImage then
+        Background.Image = SelectedTheme.BackgroundImage
+    else
+        Background.Image = "rbxassetid://120240909253986"
+    end
+
+    Rayfield.Main.BackgroundColor3 = SelectedTheme.Background
+    Rayfield.Main.Topbar.BackgroundColor3 = SelectedTheme.Topbar
+    Rayfield.Main.Topbar.CornerRepair.BackgroundColor3 = SelectedTheme.Topbar
+    Rayfield.Main.Shadow.Image.ImageColor3 = SelectedTheme.Shadow
+
+    Rayfield.Main.Topbar.ChangeSize.ImageColor3 = SelectedTheme.TextColor
+    Rayfield.Main.Topbar.Hide.ImageColor3 = SelectedTheme.TextColor
+    Rayfield.Main.Topbar.Search.ImageColor3 = SelectedTheme.TextColor
+
+    if Topbar:FindFirstChild("Settings") then
+        Rayfield.Main.Topbar.Settings.ImageColor3 = SelectedTheme.TextColor
+        Rayfield.Main.Topbar.Divider.BackgroundColor3 = SelectedTheme.ElementStroke
+    end
+
+    Main.Search.BackgroundColor3 = SelectedTheme.TextColor
+    Main.Search.Shadow.ImageColor3 = SelectedTheme.TextColor
+    Main.Search.Search.ImageColor3 = SelectedTheme.TextColor
+    Main.Search.Input.PlaceholderColor3 = SelectedTheme.TextColor
+    Main.Search.UIStroke.Color = SelectedTheme.SecondaryElementStroke
+
+    if Main:FindFirstChild("Notice") then
+        Main.Notice.BackgroundColor3 = SelectedTheme.Background
+    end
+
+    for _, text in ipairs(Rayfield:GetDescendants()) do
+        if text.Parent.Parent ~= Notifications then
+            if text:IsA("TextLabel") or text:IsA("TextBox") then
+                text.TextColor3 = SelectedTheme.TextColor
+            end
+        end
+    end
+
+    for _, TabPage in ipairs(Elements:GetChildren()) do
+        for _, Element in ipairs(TabPage:GetChildren()) do
+            if Element.ClassName == "Frame"
+                and Element.Name ~= "Placeholder"
+                and Element.Name ~= "SectionSpacing"
+                and Element.Name ~= "Divider"
+                and Element.Name ~= "SectionTitle"
+                and Element.Name ~= "SearchTitle-fsefsefesfsefesfesfThanks" then
+
+                Element.BackgroundColor3 = SelectedTheme.ElementBackground
+                Element.UIStroke.Color = SelectedTheme.ElementStroke
+            end
+        end
+    end
 	end
-
-	Rayfield.Main.BackgroundColor3 = SelectedTheme.Background
-	Rayfield.Main.Topbar.BackgroundColor3 = SelectedTheme.Topbar
-	Rayfield.Main.Topbar.CornerRepair.BackgroundColor3 = SelectedTheme.Topbar
-	Rayfield.Main.Shadow.Image.ImageColor3 = SelectedTheme.Shadow
-
-	Rayfield.Main.Topbar.ChangeSize.ImageColor3 = SelectedTheme.TextColor
-	Rayfield.Main.Topbar.Hide.ImageColor3 = SelectedTheme.TextColor
-	Rayfield.Main.Topbar.Search.ImageColor3 = SelectedTheme.TextColor
-	if Topbar:FindFirstChild('Settings') then
-		Rayfield.Main.Topbar.Settings.ImageColor3 = SelectedTheme.TextColor
-		Rayfield.Main.Topbar.Divider.BackgroundColor3 = SelectedTheme.ElementStroke
-	end
-
-	Main.Search.BackgroundColor3 = SelectedTheme.TextColor
-	Main.Search.Shadow.ImageColor3 = SelectedTheme.TextColor
-	Main.Search.Search.ImageColor3 = SelectedTheme.TextColor
-	Main.Search.Input.PlaceholderColor3 = SelectedTheme.TextColor
-	Main.Search.UIStroke.Color = SelectedTheme.SecondaryElementStroke
-
-	if Main:FindFirstChild('Notice') then
-		Main.Notice.BackgroundColor3 = SelectedTheme.Background
-	end
-
-	for _, text in ipairs(Rayfield:GetDescendants()) do
-		if text.Parent.Parent ~= Notifications then
-			if text:IsA('TextLabel') or text:IsA('TextBox') then text.TextColor3 = SelectedTheme.TextColor end
-		end
-	end
-
-	for _, TabPage in ipairs(Elements:GetChildren()) do
-		for _, Element in ipairs(TabPage:GetChildren()) do
-			if Element.ClassName == "Frame" and Element.Name ~= "Placeholder" and Element.Name ~= "SectionSpacing" and Element.Name ~= "Divider" and Element.Name ~= "SectionTitle" and Element.Name ~= "SearchTitle-fsefsefesfsefesfesfThanks" then
-				Element.BackgroundColor3 = SelectedTheme.ElementBackground
-				Element.UIStroke.Color = SelectedTheme.ElementStroke
-			end
-		end
-	end
-end
 
 local function getIcon(name : string): {id: number, imageRectSize: Vector2, imageRectOffset: Vector2}
 	if not Icons then
