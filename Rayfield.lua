@@ -948,6 +948,18 @@ local function ChangeTheme(Theme)
 
 	Main.BackgroundTransparency = 1
 
+	local yamete = Background:FindFirstChild("UIStroke")
+    if not yamete then
+        yamete = Instance.new("UIStroke")
+        yamete.Name = "UIStroke"
+        yamete.Color = SelectedTheme.ElementStroke or Color3.fromRGB(50, 50, 50)
+        yamete.Thickness = 2
+        yamete = 0.3
+        yamete.Parent = Background
+    else
+        yamete.Color = SelectedTheme.ElementStroke
+		end
+
     Rayfield.Main.BackgroundColor3 = SelectedTheme.Background
     Rayfield.Main.Topbar.BackgroundColor3 = SelectedTheme.Topbar
     Rayfield.Main.Topbar.CornerRepair.BackgroundColor3 = SelectedTheme.Topbar
