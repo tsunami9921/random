@@ -872,6 +872,21 @@ end
 -- Object Variables
 
 local Main = Rayfield.Main
+
+local Background = Instance.new("ImageLabel")
+Background.Name = "Background"
+Background.Parent = Main
+Background.BackgroundTransparency = 1
+Background.BorderSizePixel = 0
+Background.AnchorPoint = Vector2.new(0, 0)
+Background.Position = UDim2.new(0, 0, 0, 0)
+Background.Size = UDim2.new(1, 0, 1, 0)
+Background.ScaleType = Enum.ScaleType.Crop
+Background.ImageTransparency = 0.15
+Background.ZIndex = -1
+Background.Image = "rbxassetid://120240909253986"
+
+	
 local MPrompt = Rayfield:FindFirstChild('Prompt')
 local Topbar = Main.Topbar
 local Elements = Main.Elements
