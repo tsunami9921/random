@@ -946,6 +946,8 @@ local function ChangeTheme(Theme)
         Background.Image = "rbxassetid://120240909253986"
     end
 
+	Main.BackgroundTransparency = 1
+
     Rayfield.Main.BackgroundColor3 = SelectedTheme.Background
     Rayfield.Main.Topbar.BackgroundColor3 = SelectedTheme.Topbar
     Rayfield.Main.Topbar.CornerRepair.BackgroundColor3 = SelectedTheme.Topbar
@@ -1710,6 +1712,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 		if getgenv and not getgenv().rayfieldCached then
 			Rayfield.Enabled = true
 			Rayfield.Loading.Visible = true
+			LoadingFrame.BackgroundTransparency = 1
 
 			task.wait(1.4)
 			Rayfield.Loading.Visible = false
